@@ -329,6 +329,47 @@ export async function POST(request) {
       return NextResponse.json({ success: true, data: { restaurant, owner } });
     }
 
+    // Admin endpoint to update Vapi phone number
+    if (path === 'admin/update-vapi-number') {
+      const { restaurantName, vapiPhoneNumber, vapiPhoneNumberId } = body;
+      
+      if (!restaurantName || !vapiPhoneNumber || !vapiPhoneNumberId) {
+        return NextResponse.json({ 
+          error: 'Missing required fields' 
+        }, { status: 400 });
+      }
+      
+      const result = await db.collection('restaurants').updateOne(
+        { name: restaurantName },
+        {
+          $set: {
+            vapiPhoneNumber,
+            vapiPhoneNumberId,
+            updatedAt: new Date()
+          }
+        }
+      );
+      
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ 
+          error: `Restaurant "${restaurantName}" not found` 
+        }, { status: 404 });
+      }
+      
+      const restaurant = await db.collection('restaurants').findOne({ name: restaurantName });
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: `Updated ${restaurantName} with Vapi phone number`,
+        restaurant: {
+          id: restaurant._id,
+          name: restaurant.name,
+          vapiPhoneNumber: restaurant.vapiPhoneNumber,
+          vapiPhoneNumberId: restaurant.vapiPhoneNumberId
+        }
+      });
+    }
+
     return NextResponse.json({ error: 'Route not found' }, { status: 404 });
   } catch (error) {
     console.error('API Error:', error);
