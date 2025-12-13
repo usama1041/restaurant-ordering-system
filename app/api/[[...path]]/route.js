@@ -441,7 +441,16 @@ export async function POST(request) {
   const path = pathname.replace('/api', '');
 
   try {
-    const body = await request.json();
+    let body = {};
+try {
+  const text = await request.text();
+  if (text) {
+    body = JSON.parse(text);
+  }
+} catch (e) {
+  console.error('[API] Failed to parse request body:', e);
+  body = {};
+}
     const client = await connectToDatabase();
     const db = client.db('restaurant_system');
 
